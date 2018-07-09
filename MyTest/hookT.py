@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-  
+# -*- coding: utf-8 -*-
+
 from ctypes import *
 import pythoncom
 import pyHook
