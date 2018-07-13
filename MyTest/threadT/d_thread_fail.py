@@ -4,6 +4,7 @@
 # how to creat a thread? may be we can creat a decorator to make some function as a thread
 
 import threading
+from _thread import start_new_thread
 from functools import wraps
 import time
 import random
@@ -11,23 +12,31 @@ import random
 class MyThread(object):
 	"""docstring for MyThread"""
 	def __init__(self):
+		self._thread_list = []
+		print(self)
 		pass
 
 	def __call__(self, func):
 		func._thread_status = False
+		if func not in self._thread_list:
+			func._thread_id = len(self._thread_list)
+			self._thread_list.append({"func":func})
+		self._thread_list[func._thread_id]["thread"] = threading.Thread(target=func)
+		def _start_():
+			self._thread_list[func._thread_id]["thread"].start()
+			pass
+		# 由别的方法来开启，不然会循环开启线程异常
+		func.start = _start_
+		print(func)
 		@wraps(func)
 		def _call(ins, *args, **kwargs):
 			if not func._thread_status:
-				_thread.start()
-				print("thread start")
-				print(ins)
+				print("")
 				func._thread_status = True
-			return func(ins, *args, *kwargs)
-		_thread = threading.Thread(target=func)
-
-		def _inner(func):
-			pass
+			return func(ins, *args, **kwargs)
 		
+		print(func._thread_id)
+
 		return _call
 
 ## make some test
@@ -55,9 +64,8 @@ class Person(object):
 
 def main():
 	p = Person(123)
-	p.sayWhat()
-	print("after")
-	p.sayHello()
+	p.sayWhat.start()
+	p.sayHello.start()
 	pass
 
 if __name__ == '__main__':
