@@ -12,7 +12,7 @@ finally:
 
 print(os.getcwd())
 
-os.chdir("C:\\Users\\v-yaohengpan\\Desktop")
+os.chdir(r"F:\app")
 
 lists = os.listdir()
 # print(dir(lists))
