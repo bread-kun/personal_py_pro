@@ -1,5 +1,5 @@
 $(document).ready(function () {
-	var host = "http:http://127.0.0.1:5000/";
+	var host = "http://127.0.0.1:5000/";
 	var socket = io.connect(host);
 
 	socket.on('connect', function (message) {
@@ -14,29 +14,40 @@ $(document).ready(function () {
 	})
 
 	var ping_queue = [];
-	var interval = window.setInterval(function () {
-		var start_time = (new Date).getTime();
+/*	var interval = window.setInterval(function () {
+		let start_time = (new Date).getTime();
 		ping_queue.push(start_time);
-		socket.emit('client_ping');
+		socket.emit('client_ping',{time: start_time});
 	}, 1000);
-
+*/
 	socket.on('pong', function () {
-		if (ping_queue.length()>0) {
+		if (ping_queue.length>0) {
 			let start_time = ping_queue.shift();
 			let communite_time = (new Date).getTime() - start_time;
 			console.log("communite time:" + communite_time)
 		}
 	})
 
-	$("#send-form>:button").onclick(function () {
+	$("#send-form>:button").click(function (event) {
 		var commond = $("#m").val();
+		if (commond === "#leave") {
+			window.clearInterval(interval);
+			socket.on("disconnect", function(){
+				socket.emit('disconnect', {data: "i;m disconnecting"})
+			})
+		}
 		let _data = {
 			"commond" : commond
 		};
 		socket.emit('commond', {data: _data})
+		// stop submit
+		return false;
 	})
-
 	function printMessage(msg) {
 		// body...
+		alert(msg)
+	}
+	window.onload = function () {
+		alert("page refresh")
 	}
 })

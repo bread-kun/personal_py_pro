@@ -2,14 +2,15 @@
 <html>
 <head>
 	<title>commond controll Test</title>
-	<script type="text/javascript" src="https://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <!-- <script type="text/javascript" src="https://github.com/socketio/socket.io/blob/master/test/socket.io.js"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
     <script type="text/javascript" src="./js/main.js"></script>
     <link rel="stylesheet" type="text/css" href="./css/main.css">
 </head>
 <body>
 	<ul id="messages"></ul>
-    <form id="send-form" action="">
+    <form id="send-form" action="#" onsubmit="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
 </body>
