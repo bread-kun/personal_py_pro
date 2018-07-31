@@ -16,10 +16,15 @@ socketio = SocketIO(app)
 def index():
     return render_template('index.html', async_mode=socketio.async_mode)
 
-@socketio.on('my_event')
+@socketio.on('log')
 def handle_connect(message):
-	print('connect with message :',message['data'])
-	emit('my_response', {'data': "you are connected"})
+	print('connect with message :',str(message))
+	# emit('my_response', {'data': "you are connected"})
+	pass
+
+@socketio.on('client_ping')
+def handle_comunicate():
+	emit('pong')
 	pass
 
 @socketio.on('message')
