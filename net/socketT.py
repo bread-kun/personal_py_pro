@@ -65,5 +65,13 @@ def handle_json(json):
 	# print('received json:' + str(json))
 	pass
 
+@socketio.on('connect')
+def test_connect():
+    global thread
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(target=background_thread)
+    emit('my_response', {'data': 'Connected', 'count': 0})
+
 if __name__ == '__main__':
     socketio.run(app)
