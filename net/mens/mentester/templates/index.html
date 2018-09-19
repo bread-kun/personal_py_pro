@@ -1,0 +1,206 @@
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Menery Socket test</title>
+<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="static/js/socket.io-1.4.5.js"></script>
+</head>
+<body style="height: 100%; margin: 0">
+<p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
+<div id="container" style="height: 100%"></div>
+</body>
+<script language="JavaScript">
+    // var data = [];
+    // $(document).ready(function() {
+    //     namespace = 'test';
+    //     var start_flag = false;
+    //     var socket = io.connect("http://127.0.0.1:5000/" + namespace);
+    //     socket.on('connect', function() {
+    //         console.log("connected");
+    //         start_flag = true;
+    //     });
+    //     socket.on('my_response', function(msg) {
+    //         $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+    //     });
+    //     var ping_pong_times = [];
+    //     var start_time;
+    //     window.setInterval(function() {
+    //         start_time = (new Date).getTime();
+    //         socket.emit('ping');
+    //     }, 1000);
+    //     socket.on('pong', function(msg) {
+    //         var latency = (new Date).getTime() - start_time;
+    //         ping_pong_times.push(latency);
+    //         ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
+    //         var sum = 0;
+    //         for (var i = 0; i < ping_pong_times.length; i++)
+    //             sum += ping_pong_times[i];
+    //         $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+
+
+    //         ///////////////////////////////////
+    //         data.push(setData(msg.c_time,msg.data))
+    //         myChart.setOption(option);
+    //         ///////////////////////////////////
+    //     });
+    //     $('form#emit').submit(function(event) {
+    //         socket.emit('my_event', {data: $('#emit_data').val()});
+    //         return false;
+    //     });
+    //     $('form#disconnect').submit(function(event) {
+    //         socket.emit('disconnect_request');
+    //         return false;
+    //     });
+    // });
+
+$(document).ready(function() {
+    var ins = "hshshs";
+    var c = 1;
+   var mdata = [];
+   var chart = {
+      type: 'spline',
+      animation: Highcharts.svg, // don't animate in IE < IE 10.
+      marginRight: 10,
+      events: {
+         load: function () {
+            // set up the updating of the chart each second
+            var series = this.series[0];
+            setInterval(function () {
+               // var x = (new Date()).getTime(), // current time
+               // y = Math.random();
+                if (mdata.length > 0) {
+                    var _data = mdata.shift();
+                    console.log(_data[0],_data[1]);
+                    // series.addPoint([_data[0], _data[1]], true, true);
+                    series.addPoint([ins, c++], true, true);
+               }
+               console.log("running.........")
+            }, 1000);
+         }
+      }
+   };
+   c = chart;
+   var title = {
+      text: 'Live random data'   
+   };   
+   var xAxis = {
+      type: 'datetime',
+      tickPixelInterval: 150
+   };
+   var yAxis = {
+      title: {
+         text: 'Value'
+      },
+      plotLines: [{
+         value: 0,
+         width: 1,
+         color: '#808080'
+      }]
+   };
+   var tooltip = {
+      formatter: function () {
+      return '<b>' + this.series.name + '</b><br/>' +
+         Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+         Highcharts.numberFormat(this.y, 2);
+      }
+   };
+   var plotOptions = {
+      area: {
+         pointStart: 1940,
+         marker: {
+            enabled: false,
+            symbol: 'circle',
+            radius: 2,
+            states: {
+               hover: {
+                 enabled: true
+               }
+            }
+         }
+      }
+   };
+   var legend = {
+      enabled: false
+   };
+   var exporting = {
+      enabled: false
+   };
+   var series= [{
+      name: 'data',
+      data: (function () {
+         // generate an array of random data
+         var data = [],time = (new Date()).getTime(),i;
+         for (i = -19; i <= 0; i += 1) {
+            data.push({
+               x: time + i * 1000,
+               y: Math.random()
+            });
+         }
+         return data;
+      }())    
+   }];     
+      
+   var json = {};   
+   json.chart = chart; 
+   json.title = title;     
+   json.tooltip = tooltip;
+   json.xAxis = xAxis;
+   json.yAxis = yAxis; 
+   json.legend = legend;  
+   json.exporting = exporting;   
+   json.series = series;
+   json.plotOptions = plotOptions;
+   
+   
+   Highcharts.setOptions({
+      global: {
+         useUTC: false
+      }
+   });
+   $('#container').highcharts(json);
+    //////////////////////////////////////////////////////////////////////////////
+    namespace = 'test';
+    var start_flag = false;
+    var socket = io.connect("http://127.0.0.1:5000/" + namespace);
+    socket.on('connect', function() {
+        console.log("connected");
+        start_flag = true;
+    });
+    // socket.on('my_response', function(msg) {
+    //     $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+    // });
+    var ping_pong_times = [];
+    var start_time;
+    window.setInterval(function() {
+        start_time = (new Date).getTime();
+        socket.emit('ping');
+    }, 1000);
+    socket.on('pong', function(msg) {
+        var latency = (new Date).getTime() - start_time;
+        ping_pong_times.push(latency);
+        ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
+        var sum = 0;
+        for (var i = 0; i < ping_pong_times.length; i++)
+            sum += ping_pong_times[i];
+        $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+        console.log(msg);
+        ///////////////////////////////////
+        // console.log("======>",series);
+        // animer.addPoint([msg.c_time, msg.data], true, true);
+        mdata.push([msg.c_time, parseInt(msg.data)]);
+        console.log("cccccccccccccccccccccccc   ",mdata)
+        ///////////////////////////////////
+    });
+    $('form#emit').submit(function(event) {
+        socket.emit('my_event', {data: $('#emit_data').val()});
+        return false;
+    });
+    $('form#disconnect').submit(function(event) {
+        socket.emit('disconnect_request');
+        return false;
+    });
+    //////////////////////////////////////////////////////////////////////////////
+});
+</script>
+</html>
