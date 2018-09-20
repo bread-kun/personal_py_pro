@@ -3,65 +3,143 @@
 <head>
     <title>Menery Socket test</title>
     <script type="text/javascript" src="https://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-gl/echarts-gl.min.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
-    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
-    <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/simplex.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
     <script type="text/javascript" src="static/js/socket.io-1.4.5.js"></script>
-    <!-- <script type="text/javascript" src="{{socket_io}}"></script> -->
-    <script type="text/javascript" src="static/js/option.js"></script>
+    <!-- <script type="text/javascript" src="static/js/option.js"></script> -->
 </head>
 <body style="height: 100%; margin: 0">
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <div id="container" style="height: 100%"></div>
 </body>
 <script type="text/javascript" charset="utf-8">
-    // var data = [];
-    // $(document).ready(function() {
-    //     namespace = 'test';
-    //     var start_flag = false;
-    //     var socket = io.connect("http://127.0.0.1:5000/" + namespace);
-    //     socket.on('connect', function() {
-    //         console.log("connected");
-    //         start_flag = true;
-    //     });
-    //     socket.on('my_response', function(msg) {
-    //         $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
-    //     });
-    //     var ping_pong_times = [];
-    //     var start_time;
-    //     window.setInterval(function() {
-    //         start_time = (new Date).getTime();
-    //         socket.emit('ping');
-    //     }, 1000);
-    //     socket.on('pong', function(msg) {
-    //         var latency = (new Date).getTime() - start_time;
-    //         ping_pong_times.push(latency);
-    //         ping_pong_times = ping_pong_times.slice(-30); // keep last 30 samples
-    //         var sum = 0;
-    //         for (var i = 0; i < ping_pong_times.length; i++)
-    //             sum += ping_pong_times[i];
-    //         $('#ping-pong').text(Math.round(10 * sum / ping_pong_times.length) / 10);
+$(document).ready(function() {
+    var md = [];
 
 
-    //         ///////////////////////////////////
-    //         data.push(setData(msg.c_time,msg.data))
-    //         myChart.setOption(option);
-    //         ///////////////////////////////////
-    //     });
-    //     $('form#emit').submit(function(event) {
-    //         socket.emit('my_event', {data: $('#emit_data').val()});
-    //         return false;
-    //     });
-    //     $('form#disconnect').submit(function(event) {
-    //         socket.emit('disconnect_request');
-    //         return false;
-    //     });
-    // });
+    //////////////////////////////////////////////////////////////////////////////
+    const NAMESPACE = 'test';
+    var start_flag = false;
+    var ping_pong_times = [];
+    var socket = io.connect("http://127.0.0.1:5000/" + NAMESPACE);
+    socket.on('connect', function() {
+        console.log("connected");
+        start_flag = true;
+    });
+    var timer = setInterval(function() {
+        var _t = (new Date).getTime();
+        socket.emit('sping',{'time': _t});
+    }, 1000);
+    // var timer = setInterval(function () {
+    //     md.push([(new Date).getTime(),Math.random()*200-100+70000])
+    // })
+    socket.on('spong', function(msg) {
+        var latency = (new Date).getTime() - msg.pre_time;
+        $('#ping-pong').text(Math.round(latency));
+        md.push([parseFloat(msg.c_time), parseInt(msg.c_value)]);
+    });
+    //////////////////////////////////////////////////////////////////////////////
+        var chart = {
+      type: 'spline',
+      animation: Highcharts.svg, // don't animate in IE < IE 10.
+      marginRight: 10,
+      events: {
+         load: function () {
+            var series = this.series[0];
+            // set up the updating of the chart each second
+            setInterval(function () {
+               // var x = (new Date()).getTime(), // current time
+               // y = Math.random();
+                if (md.length > 0) {
+                    var _d = md.shift();
+                    // console.log("---------> addPoint -->",[_d[0],_d[1]]);
+                    console.log("md.length--->", md.length);
+                    console.log(_d);
+                    series.addPoint([_d[0],_d[1]], true, true);
+                    // alert(series);
+                    // console.log(series);
+               }
+            }, 1000);
+         }
+      }
+   };
+   var title = {
+      text: 'Live random data'   
+   };   
+   var xAxis = {
+      type: 'datetime',
+      tickPixelInterval: 150
+   };
+   var yAxis = {
+      title: {
+         text: 'Value'
+      },
+      plotLines: [{
+         value: 0,
+         width: 1,
+         color: '#808080'
+      }]
+   };
+   var tooltip = {
+      formatter: function () {
+      return '<b>' + this.series.name + '</b><br/>' +
+         Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+         Highcharts.numberFormat(this.y, 2);
+      }
+   };
+   var plotOptions = {
+      area: {
+         pointStart: 1940,
+         marker: {
+            enabled: false,
+            symbol: 'circle',
+            radius: 2,
+            states: {
+               hover: {
+                 enabled: true
+               }
+            }
+         }
+      }
+   };
+   var legend = {
+      enabled: false
+   };
+   var exporting = {
+      enabled: false
+   };
+   var series= [{
+      name: 'data',
+      data: (function () {
+         // generate an array of random data
+         var data = [],time = (new Date()).getTime(),i;
+         for (i = -25; i <= 0; i += 1) {
+            data.push({
+               x: (new Date).getTime()/1000 + i,
+               y: 0
+            });
+         }
+         return data;
+      }())    
+   }];     
+      
+   var json = {};   
+   json.chart = chart; 
+   json.title = title;     
+   json.tooltip = tooltip;
+   json.xAxis = xAxis;
+   json.yAxis = yAxis; 
+   json.legend = legend;  
+   json.exporting = exporting;   
+   json.series = series;
+   json.plotOptions = plotOptions;
+   
+   
+   Highcharts.setOptions({
+      global: {
+         useUTC: false
+      }
+   });
+   $('#container').highcharts(json);
+})
 </script>
 </html>

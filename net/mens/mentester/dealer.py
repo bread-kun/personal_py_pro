@@ -28,12 +28,13 @@ def serve_static(filename):
 def background_thread():
     """Example of how to send server generated events to clients."""
     count = 0
-    while True:
-        socketio.sleep(10)
-        count += 1
-        _data = menlooker.get_men("com.meizu.media.music")
-        socketio.emit('pong',{"c_time":_data[0], "data":_data[1]},
-                      namespace='/test')
+    # while True:
+    #     socketio.sleep(10)
+    #     count += 1
+    #     print(".............background_thread")
+    #     _data = menlooker.get_men("com.meizu.media.music")
+    #     socketio.emit('pong',{"c_time":_data[0], "data":_data[1]},
+    #                   namespace='/test')
         # socketio.emit('pong',
         #               {'data': 'Server generated event', 'count': count},
         #               namespace='/test')
@@ -41,10 +42,7 @@ def background_thread():
 
 @app.route('/')
 def index():
-    # statics_socket_io = url_for("static", filename="js/socket.io-1.4.5.js")
-    # statics_echart_op = url_for("static", filename="js/option.js")
-    # return render_template('index.html',socket_io = statics_socket_io,echart_op = statics_echart_op, async_mode=socketio.async_mode)
-    return render_template('index.html',async_mode=socketio.async_mode)
+    return render_template('indexx.html',async_mode=socketio.async_mode)
 
 # @app.route('/static/js/<path:path>')
 # def send_js(path):
@@ -62,16 +60,21 @@ class MyNamespace(Namespace):
              {'data': 'Disconnected!', 'count': session['receive_count']})
         disconnect()
 
-    def on_ping(self):
-        _data = menlooker.get_men("com.meizu.media.music")
-        emit('pong',{"c_time":_data[0], "data":_data[1]})
+    # def on_sping(self, msg):
+    # 	print("spinging..............")
+    # 	_data = menlooker.get_men("com.meizu.media.music")
+    # 	emit('spong',{"pre_time": msg['time'], "c_time":_data[0], "data":_data[1]})
+    def on_sping(self, msg):
+    	_data = menlooker.get_men("com.meizu.media.music")
+    	emit('spong', {'pre_time': msg['time'], 'c_time': _data[0], 'c_value' : _data[1]})
+    	pass
 
     def on_connect(self):
-        global thread
-        with thread_lock:
-            if thread is None:
-                thread = socketio.start_background_task(
-                    target=background_thread)
+        # global thread
+        # with thread_lock:
+        #     if thread is None:
+                # thread = socketio.start_background_task(
+                #     target=background_thread)
         emit('my_response', {'data': 'Connected', 'count': 0})
 
     def on_disconnect(self):
