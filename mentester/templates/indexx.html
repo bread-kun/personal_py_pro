@@ -1,39 +1,67 @@
+<!DOCTYPE HTML>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Menery Socket test</title>
-<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="http://code.highcharts.com/highcharts.js"></script>
+    <title>Menery Socket test</title>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript" src="static/js/socket.io-1.4.5.js"></script>
+    <!-- <script type="text/javascript" src="static/js/option.js"></script> -->
 </head>
 <body style="height: 100%; margin: 0">
 <p>Average ping/pong latency: <b><span id="ping-pong"></span>ms</b></p>
 <div id="container" style="height: 100%"></div>
 </body>
-<script language="JavaScript">
-
+<script type="text/javascript" charset="utf-8">
 $(document).ready(function() {
-    var ins = "hshshs";
-    var c = 1;
-    var mdata = [];
-    var chart = {
-      type: 'line',
+    var md = [];
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    const NAMESPACE = 'test';
+    var start_flag = false;
+    var ping_pong_times = [];
+    var socket = io.connect("http://127.0.0.1:5000/" + NAMESPACE);
+    socket.on('connect', function() {
+        console.log("connected");
+        start_flag = true;
+    });
+    var timer = setInterval(function() {
+        var _t = (new Date).getTime();
+        socket.emit('sping',{'time': _t});
+    }, 1000);
+    // var timer = setInterval(function () {
+    //     md.push([(new Date).getTime(),Math.random()*200-100+70000])
+    // })
+    socket.on('spong', function(msg) {
+        var latency = (new Date).getTime() - msg.pre_time;
+        $('#ping-pong').text(Math.round(latency));
+        md.push([parseFloat(msg.c_time), parseInt(msg.c_value)]);
+    });
+    //////////////////////////////////////////////////////////////////////////////
+        var chart = {
+      type: 'spline',
       animation: Highcharts.svg, // don't animate in IE < IE 10.
       marginRight: 10,
       events: {
          load: function () {
-            // set up the updating of the chart each second
             var series = this.series[0];
+            // set up the updating of the chart each second
             setInterval(function () {
                // var x = (new Date()).getTime(), // current time
                // y = Math.random();
-                var _x = (new Date).getTime();
-                var _y = Math.random()*200-100+70000;
-                series.addPoint([_x,_y], true, true);
-            }, 500);
+                if (md.length > 0) {
+                    var _d = md.shift();
+                    // console.log("---------> addPoint -->",[_d[0],_d[1]]);
+                    console.log("md.length--->", md.length);
+                    console.log(_d);
+                    series.addPoint([_d[0],_d[1]], true, true);
+                    // alert(series);
+                    // console.log(series);
+               }
+            }, 1000);
          }
       }
    };
-   c = chart;
    var title = {
       text: 'Live random data'   
    };   
@@ -54,8 +82,7 @@ $(document).ready(function() {
    var tooltip = {
       formatter: function () {
       return '<b>' + this.series.name + '</b><br/>' +
-         // Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-         this.x + '<br/>' +
+         Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
          Highcharts.numberFormat(this.y, 2);
       }
    };
@@ -85,12 +112,9 @@ $(document).ready(function() {
       data: (function () {
          // generate an array of random data
          var data = [],time = (new Date()).getTime(),i;
-         var _x = (new Date).getTime();
-         var _y = Math.random()*200-100+70000;
-
-         for (i = -19; i <= 0; i += 1) {
+         for (i = -25; i <= 0; i += 1) {
             data.push({
-               x: (new Date).getTime(),
+               x: (new Date).getTime()/1000 + i,
                y: 0
             });
          }
@@ -116,6 +140,6 @@ $(document).ready(function() {
       }
    });
    $('#container').highcharts(json);
-});
+})
 </script>
 </html>

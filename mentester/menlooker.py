@@ -9,7 +9,7 @@ from adbtools import clocker,_run
 """
 pkg_name = "com.meizu.media.music"
 men = []
-@clocker
+# @clocker
 def get_men(pkg_name):
 	cmd = "adb shell  dumpsys  meminfo %s" %pkg_name
 	temp = []
@@ -24,7 +24,8 @@ def get_men(pkg_name):
 	while s is not "":
 		if s.strip().startswith("TOTAL"):
 			for _total in re.finditer(r"\d+",s):
-				return (time.strftime('%Y/%m/%d %H:%M:%S'), _total.group())
+				# return (time.strftime('%Y/%m/%d %H:%M:%S'), _total.group())
+				return (time.time(), _total.group())
 			pass
 		s = men_s.readline().decode(encoding="utf-8")
 		pass
@@ -33,7 +34,8 @@ def get_men(pkg_name):
 def main():
 	for x in range(100):
 		_g_res = get_men(pkg_name)
-		print(_g_res[0],"  -total:",_g_res[1])
+		print(_g_res)
+		# print(_g_res[0],"  -total:",_g_res[1])
 		pass
 	# _run("adb shell  dumpsys  meminfo %s" %pkg_name)
 	pass
